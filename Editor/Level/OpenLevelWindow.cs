@@ -38,7 +38,7 @@ namespace EasyGamePlay.Editor
             GUILayout.EndVertical();
         }
 
-        [MenuItem("EasyGamePlay/Level/Open")]
+        [MenuItem("EasyGamePlay/Level/Open", priority = 5)]
         private static void ShowWindow()
         {
             OpenLevelWindow.CreateWindow<OpenLevelWindow>().Show();

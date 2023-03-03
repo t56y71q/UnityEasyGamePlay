@@ -152,7 +152,7 @@ namespace EasyGamePlay.Editor
                 string folder = buildFolder + "/" + group;
 
                 AssetInfoFile assetInfoFile = new AssetInfoFile(assetInfos);
-                string data = FrameWork.frameWork.Serialize(assetInfoFile, SerializeType.json);
+                string data = FrameWork.frameWork.serialize.Serialize(assetInfoFile, SerializeType.json);
 
                 TextWriter textWriter = new TextWriter(folder + "/" + Path.GetFileNameWithoutExtension(group) + ".json");
                 textWriter.Write(data);
@@ -166,7 +166,7 @@ namespace EasyGamePlay.Editor
                 string folder = buildFolder + "/" + group;
 
                 AssetInfoFile assetInfoFile = new AssetInfoFile(assetInfos);
-                string data = FrameWork.frameWork.Serialize(assetInfoFile, SerializeType.json);
+                string data = FrameWork.frameWork.serialize.Serialize(assetInfoFile, SerializeType.json);
 
                 TextWriter textWriter = new TextWriter(folder + "/" + Path.GetFileNameWithoutExtension(group) + ".json");
                 textWriter.Write(data);

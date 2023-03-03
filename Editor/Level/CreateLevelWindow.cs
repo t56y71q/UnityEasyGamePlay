@@ -50,7 +50,7 @@ namespace EasyGamePlay.Editor
             GUILayout.EndVertical();
         }
 
-        [MenuItem("EasyGamePlay/Level/Create")]
+        [MenuItem("EasyGamePlay/Level/Create",priority = 10)]
         private static void ShowWindow()
         {
             CreateLevelWindow.CreateWindow<CreateLevelWindow>().Show();

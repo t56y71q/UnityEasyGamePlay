@@ -19,14 +19,14 @@ namespace EasyGamePlay.Editor
         public void Create(string path)
         {
             TextWriter textWriter = new TextWriter(path);
-            textWriter.Write(FrameWork.frameWork.Serialize(new LevelAsset(), SerializeType.json));
+            textWriter.Write(FrameWork.frameWork.serialize.Serialize(new LevelAsset(), SerializeType.json));
             textWriter.CloseFile();
             AssetDatabase.Refresh();
         }
 
         public void Save(LevelAsset levelAsset)
         {
-            string data= FrameWork.frameWork.Serialize(levelAsset, SerializeType.json);
+            string data= FrameWork.frameWork.serialize.Serialize(levelAsset, SerializeType.json);
             TextWriter textWriter = new TextWriter(path);
             textWriter.Write(data);
             textWriter.CloseFile();
@@ -44,7 +44,7 @@ namespace EasyGamePlay.Editor
             TextReader textReader = new TextReader(path);
             string data = textReader.ReadToEnd();
             textReader.CloseFile();
-            return FrameWork.frameWork.DeSerialize<LevelAsset>(data, SerializeType.json);
+            return FrameWork.frameWork.serialize.DeSerialize<LevelAsset>(data, SerializeType.json);
         }
 
         public string GetName()
@@ -60,10 +60,16 @@ namespace EasyGamePlay.Editor
 
         public delegate void ColseLevel();
 
-        [MenuItem("EasyGamePlay/Level/Close")]
+        [MenuItem("EasyGamePlay/Level/Close", false, 8)]
         private static void CloseLevel()
         {
             FrameWorkEditor.levelEditor.Close();
+        }
+
+        [MenuItem("EasyGamePlay/Level/Close", true, 8)]
+        private static bool IsCloseVaildate()
+        {
+            return FrameWorkEditor.levelEditor.IsOpen();
         }
     }
 }

@@ -9,19 +9,26 @@ namespace EasyGamePlay
         public GameObject gameObject { get=> @object; }
         public Transform transform { get=> mTransform; }
         public override string name { get => base.name; set { base.name = value; gameObject.name = value; } }
+        public EScene scene { get => eScene; }
+        public abstract ActorProperty actorProperty { get; }
 
         private GameObject @object;
         private Transform mTransform;
-
-        internal void SetGameObject(GameObject gameObject)
+        internal EScene eScene;
+        private string prefab;
+      
+        internal void ActorAwake(ActorProperty actorProperty)
         {
-            this.@object = gameObject;
-            mTransform = gameObject.transform;
-            if (gameObject.TryGetComponent<ActorProperty>(out ActorProperty actorProperty))
+            if (actorProperty != null)
             {
-                OnDeserialize(actorProperty);
-                actorProperty.actor = this;
-            }   
+                ActorProperty mActorProperty = GameObject.Instantiate<ActorProperty>(actorProperty);
+                SetProperty(mActorProperty);
+                @object = mActorProperty.gameObject;
+                mTransform = @object.transform;
+                Awake();
+            }
+            else
+                Debug.LogError(GetType()+"ActorProperty is null");
         }
 
         protected override void OnEnable()
@@ -34,11 +41,34 @@ namespace EasyGamePlay
             gameObject.SetActive(false);
         }
 
-        protected override void OnDestroy()
+        protected override void Destroy()
         {
+            OnDestroy();
             GameObject.Destroy(gameObject);
+            if(!string.IsNullOrEmpty(prefab))
+                FrameWork.frameWork.resource.UnloadAsset(prefab);
         }
 
-        protected abstract void OnDeserialize(ActorProperty actorProperty);
+        protected abstract void OnDestroy();
+        protected abstract void SetProperty(ActorProperty actorProperty);
+
+        internal void SetPrefab(string prefab)
+        {
+            this.prefab = prefab;
+        }
+
+        public static T CreateActor<T>(ActorProperty actorProperty) where T : Actor, new()
+        {
+            T actor = new T();
+            actor.ActorAwake(actorProperty);
+            return actor;
+        }
+
+        public static Actor CreateActor(Type type, ActorProperty actorProperty)
+        {
+            Actor actor = Activator.CreateInstance(type) as Actor;
+            actor.ActorAwake(actorProperty);
+            return actor;
+        }
     }
 }

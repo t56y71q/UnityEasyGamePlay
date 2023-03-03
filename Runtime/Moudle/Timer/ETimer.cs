@@ -18,21 +18,28 @@ namespace EasyGamePlay
         private const float spanTime = 0.1f;
         private const int count = 20;
 
+        private EPool pool;
+
+        public ETimer(EPool pool)
+        {
+            this.pool = pool;
+        }
+
         internal void Init()
         {
             updates = new OrderList<TimeStep>(count);
             adds = new Queue<Timer>(count/2);
             removes = new Queue<Timer>(count / 2);
 
-            TimeStep.SetAction(adds.Enqueue, FrameWork.frameWork.ReleasePoolAble<Timer>, updates.Remove);
+            TimeStep.SetAction(adds.Enqueue, pool.Release<Timer>, updates.Remove);
 
-            FrameWork.frameWork.BuildPool<Timer>(delegate () { return new Timer(); }, delegate (Timer timer) { }, count);
+            pool.BuildPool<Timer>(delegate () { return new Timer(); }, delegate (Timer timer) { }, count);
         }
 
         public Timer StartTimer(float time, Action finish, Action<float> update = null,bool isLoop = false )
         {
 
-            Timer timer = FrameWork.frameWork.GetPoolAble<Timer>();
+            Timer timer = pool.Get<Timer>();
             timer.SetProperty(time, finish, update, isLoop);
             adds.Enqueue(timer);
             if (!isTicking)
@@ -52,7 +59,7 @@ namespace EasyGamePlay
         {
             if (isTicking)
                 FrameWork.frameWork.RemoveTick(this);
-            FrameWork.frameWork.DestroyPool<Timer>();
+            pool.DestroyPool<Timer>();
         }
 
         public void Tick()

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace EasyGamePlay
 {
-    class EResource
+    public class EResource
     {
         private Dictionary<string, SmartObject> assets=new Dictionary<string, SmartObject>();
         private Dictionary<string, List<string>> pathes = new Dictionary<string, List<string>>();
@@ -13,39 +13,48 @@ namespace EasyGamePlay
 
         private string folder;
         private string postFixed;
+        private ESerialize eSerialize;
 
-        public EResource()
+        public EResource(ESerialize eSerialize)
         {
+            this.eSerialize = eSerialize;
             EAsset.unload = UnloadAsset;
             SmartObject.release = ReleaseAsset;
             ResourceLoader.remove = RemoveResourceLoader;
+
+            EAsset.unload = UnloadAsset;
         }
 
-        public EAsset LoadAssetAsync(string path)
+        public void LoadAssetAsync(string path,Action<EAsset> completed)
         {
             if (assets.TryGetValue(path,out SmartObject smartObject) )
             {
                 if (smartObject.IsZeroCount())
                 {
                     Load(smartObject);
-                }   
-                smartObject.Add();
-                return smartObject.asset;
+                    smartObject.Add();
+                    smartObject.completed += delegate (UnityEngine.Object @object) { completed?.Invoke(new EAsset(smartObject.@object, path)); };
+                } 
+                else
+                {
+                    smartObject.Add();
+                    completed?.Invoke(new EAsset(smartObject.@object, path));
+                }             
             }
-            UnityEngine.Debug.LogWarning("has no asset in this path:"+path);
-            return new EAsset(string.Empty);
+            else
+                UnityEngine.Debug.LogWarning("has no asset in this path:"+path);
         }
 
         public void LoadSetting(ResourceSetting resourceSetting)
         {
-            folder = UnityEngine.Application.dataPath+"/"+resourceSetting.folder+"/";
+            folder = resourceSetting.folder + "/";
 
             if (string.IsNullOrEmpty(postFixed))
                 postFixed = "." + resourceSetting.postFixed;
             else
                 postFixed = string.Empty;
 
-            AssetInfoFile infoFile = FrameWork.frameWork.DeSerialize<AssetInfoFile>(resourceSetting.defaultAssetInfoFile.text,SerializeType.json);
+            AssetInfoFile infoFile = eSerialize.DeSerialize<AssetInfoFile>(resourceSetting.defaultAssetInfoFile.text,SerializeType.json);
             if(infoFile.assetInfos!=null)
                 LoadInfo(resourceSetting.defaultAssetInfoKey, infoFile);
 
@@ -86,7 +95,7 @@ namespace EasyGamePlay
             loaderCreators.Add(resourceLoaderCreator);
         }
 
-        private void UnloadAsset(string path)
+        public void UnloadAsset(string path)
         {
             if (assets.TryGetValue(path, out SmartObject smartObject) && smartObject.IsRelease())
             {

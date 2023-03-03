@@ -37,7 +37,7 @@ namespace EasyGamePlay
                             var assetBundleRequest = (asyncOperation as AssetBundleCreateRequest).assetBundle.LoadAssetAsync(assetPath, type);
                             assetBundleRequest.completed += delegate (AsyncOperation async)
                             {
-                                loadObject.LoadObject((async as AssetBundleRequest).asset);
+                                loadObject.@object = (async as AssetBundleRequest).asset;
                             };
                         };
                         break;
@@ -46,7 +46,7 @@ namespace EasyGamePlay
                     {
                         var assetBundleRequest = request.assetBundle.LoadAssetAsync(assetPath, type);
                         assetBundleRequest.completed += delegate (AsyncOperation async) {
-                            loadObject.LoadObject((async as AssetBundleRequest).asset);
+                            loadObject.@object = (async as AssetBundleRequest).asset;
                         };
                         break;
                     }
@@ -66,7 +66,7 @@ namespace EasyGamePlay
                             var assetBundleRequest = request.assetBundle.LoadAssetAsync<T>(assetPath);
                             assetBundleRequest.completed += delegate (AsyncOperation async)
                             {
-                                loadObject?.LoadObject((async as AssetBundleRequest).asset as T);
+                                loadObject.@object = (async as AssetBundleRequest).asset as T;
                             };
                         };
                         break;
@@ -75,7 +75,7 @@ namespace EasyGamePlay
                     {
                         var assetBundleRequest = request.assetBundle.LoadAssetAsync<T>(assetPath);
                         assetBundleRequest.completed += delegate (AsyncOperation async) {
-                            loadObject?.LoadObject((async as AssetBundleRequest).asset as T);
+                            loadObject.@object = (async as AssetBundleRequest).asset as T;
                         };
                         break;
                     }

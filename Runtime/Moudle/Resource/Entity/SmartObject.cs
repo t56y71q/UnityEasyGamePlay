@@ -6,20 +6,19 @@ namespace EasyGamePlay
 {
     class SmartObject: ILoadObject
     {
-        public EAsset asset { get;}
-
+        public UnityEngine.Object @object { get=> mObject; set=> SetObject(value); }
+        public Action<UnityEngine.Object> completed;
         public string bundleName { get;  }
         public string assetPath { get; }
         public Type type { get; }
 
         private int count;
+        private UnityEngine.Object mObject;
 
         internal static Action<string,UnityEngine.Object> release;
 
         public SmartObject(AssetInfo assetInfo)
         {
-            asset = new EAsset(assetInfo.path);
-           
             this.bundleName = assetInfo.bundleName;
             this.assetPath = assetInfo.assetPath;
             type = Type.GetType(assetInfo.type);
@@ -33,7 +32,7 @@ namespace EasyGamePlay
 
         public void Release()
         {
-            release(bundleName, asset.@object);
+            release(bundleName, @object);
         }
 
         public bool IsRelease()
@@ -46,9 +45,11 @@ namespace EasyGamePlay
             return count == 0;
         }
 
-        public void LoadObject(UnityEngine.Object @object)
+        public void SetObject(UnityEngine.Object @object)
         {
-            asset.SetObject(@object);
+            this.mObject = @object;
+            completed?.Invoke(@object);
+            completed = null;
         }
     }
 }

@@ -16,14 +16,12 @@ namespace EasyGamePlay.Editor
             scene.name = name;
             EditorSceneManager.SetActiveScene(scene);
 
-            GameObject gameObject;
             SceneActor sceneActor;
             for (int i = 0; i < sceneSerialize.sceneActors.Length; i++)
             {
                 sceneActor = sceneSerialize.sceneActors[i];
-                gameObject = GameObject.Instantiate(FrameWorkEditor.resourceEditor.LoadAsset<GameObject>(sceneActor.type));
-                gameObject.transform.SetPositionAndRotation(sceneActor.pos, Quaternion.Euler(sceneActor.rotation));
-                gameObject.transform.localScale = sceneActor.scale;
+                GameObject gameObject=GameObject.Instantiate(FrameWorkEditor.resourceEditor.LoadAsset<GameObject>(sceneActor.prefab));
+                gameObject.name = sceneActor.name;
                 gameObject.SetActive(sceneActor.active);
             }
         }
@@ -46,33 +44,26 @@ namespace EasyGamePlay.Editor
 
         private void ChangeGameObjectToActor(Transform transform, List<SceneActor> sceneActors)
         {
-            if(transform.TryGetComponent<ActorCreator>(out ActorCreator actorCreator))
-            {
-                Type type = Type.GetType(actorCreator.type);
-                if (type!=null)
-                {
-                    SceneActor sceneActor = new SceneActor();
-                    sceneActor.active = transform.gameObject.activeSelf;
-                    sceneActor.type = type.Name;
-                    sceneActor.pos = transform.position;
-                    sceneActor.rotation = transform.rotation.eulerAngles;
-                    sceneActor.scale = transform.localScale;
-                    sceneActors.Add(sceneActor);
-                }
-                else
-                {
-                    Debug.LogError(actorCreator.name + "'s Actor Type is Wrong");
-                }
-                return;
-            }
-
             Transform[] transforms = transform.GetComponentsInChildren<Transform>();
             if (transforms != null)
             {
-                for(int i=0;i< transforms.Length;i++)
+                GameObject prefab;
+                SceneActor sceneActor;
+                Transform child;
+                for (int i = 0; i < transforms.Length; i++)
                 {
-                    if(transforms[i]!=transform)
-                        ChangeGameObjectToActor(transforms[i], sceneActors);
+                    child = transforms[i];
+                    if (child.TryGetComponent<ActorProperty>(out ActorProperty actorProperty))
+                    {
+                        prefab = PrefabUtility.GetCorrespondingObjectFromSource(child.gameObject);
+                        sceneActor = new SceneActor();
+                        sceneActor.name = child.name;
+                        sceneActor.prefab = FrameWorkEditor.resourceEditor.GetPath(prefab);
+                        sceneActor.transform = new ETransform(child);
+                        sceneActor.active = child.gameObject.activeSelf;
+
+                        sceneActors.Add(sceneActor);
+                    }
                 }
             }
         }
@@ -82,7 +73,7 @@ namespace EasyGamePlay.Editor
             EditorSceneManager.CloseScene(EditorSceneManager.GetActiveScene(), true);
         }
 
-        [MenuItem("EasyGamePlay/Scene/Save",false)]
+        [MenuItem("EasyGamePlay/Scene/CreateFromScene",false)]
         private static void SaveCurrentScene()
         {
             LevelAsset levelAsset = FrameWorkEditor.levelEditor.LoadLevel();
@@ -90,7 +81,7 @@ namespace EasyGamePlay.Editor
             FrameWorkEditor.levelEditor.Save(levelAsset);
         }
 
-        [MenuItem("EasyGamePlay/Scene/Save", true)]
+        [MenuItem("EasyGamePlay/Scene/CreateFromScene", true)]
         private static bool IsVaildSave()
         {
             return FrameWorkEditor.levelEditor.IsOpen();

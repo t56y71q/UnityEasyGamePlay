@@ -16,8 +16,6 @@ namespace EasyGamePlay
         private CoroutineState coroutineState;
         internal bool isStoped;
 
-        private static Action<CoroutineTask> remove;
-
         public CoroutineTask(IEnumerator enumerator)
         {
             this.enumerator = enumerator;
@@ -27,7 +25,6 @@ namespace EasyGamePlay
 
         internal IEnumerator CallWarpper()
         {
-            yield return null;
             while (!isStoped)
             {
                 switch (coroutineState)
@@ -48,7 +45,6 @@ namespace EasyGamePlay
                         break;
                 }
             }
-            remove(this);
         }
 
         public void Pause()
@@ -59,11 +55,6 @@ namespace EasyGamePlay
         public void Resume()
         {
             coroutineState = CoroutineState.runing;
-        }
-
-        public static void SetAction(Action<CoroutineTask> remove)
-        {
-            CoroutineTask.remove = remove;
         }
     }
 }

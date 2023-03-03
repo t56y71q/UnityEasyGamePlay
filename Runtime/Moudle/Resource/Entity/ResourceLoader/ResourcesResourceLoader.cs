@@ -15,7 +15,7 @@ namespace EasyGamePlay
             var request= Resources.LoadAsync(assetPath, type);
             request.completed += delegate (AsyncOperation async)
             {
-               loadObject.LoadObject((async as ResourceRequest).asset);
+               loadObject.@object=(async as ResourceRequest).asset;
             };
         }
 
@@ -24,7 +24,7 @@ namespace EasyGamePlay
             var request = Resources.LoadAsync<T>(assetPath);
             request.completed += delegate (AsyncOperation async)
             {
-                loadObject.LoadObject((async as ResourceRequest).asset);
+                loadObject.@object = (async as ResourceRequest).asset;
             };
         }
 

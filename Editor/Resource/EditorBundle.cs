@@ -73,5 +73,17 @@ namespace EasyGamePlay.Editor
             }
             return null;
         }
+
+        public string GetPath(UnityEngine.Object @object)
+        {
+            for (int i = 0; i < editorAssetInfos.Count; i++)
+            {
+                if (@object == editorAssetInfos[i].@object)
+                {
+                    return editorAssetInfos[i].path;
+                }
+            }
+            return null;
+        }
     }
 }

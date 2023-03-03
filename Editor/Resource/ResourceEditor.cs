@@ -57,6 +57,7 @@ namespace EasyGamePlay.Editor
             if(!resourceData.folders.Contains(bundlefolder))
             {
                 resourceData.folders.Add(bundlefolder);
+                EditorUtility.SetDirty(resourceData);
             }
 
             AssetDatabase.CreateAsset(editorBundle, bundlefolder + "/" + bundleName + ".asset");
@@ -68,7 +69,7 @@ namespace EasyGamePlay.Editor
             UnityEngine.Object @object;
             for (int i=0;i< editorBundles.Count;i++)
             {
-                @object = editorBundles[i]?.GetObject(path);
+                @object = editorBundles[i].GetObject(path);
                 if (@object != null)
                     return @object;
             }
@@ -80,9 +81,21 @@ namespace EasyGamePlay.Editor
             T @object;
             for (int i = 0; i < editorBundles.Count; i++)
             {
-                @object = editorBundles[i]?.GetObject(path) as T;
+                @object = editorBundles[i].GetObject(path) as T;
                 if (@object != null)
                     return @object;
+            }
+            return null;
+        }
+
+        public string GetPath(UnityEngine.Object @object)
+        {
+            string path;
+            for (int i = 0; i < editorBundles.Count; i++)
+            {
+                path = editorBundles[i].GetPath(@object);
+                if (path != null)
+                    return path;
             }
             return null;
         }

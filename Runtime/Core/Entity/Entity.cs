@@ -19,6 +19,7 @@ namespace EasyGamePlay
         internal void Awake()
         {
             OnAwake();
+            stateUpdate(this);
         }
 
         public void SetActive(bool active)
@@ -39,7 +40,7 @@ namespace EasyGamePlay
         protected abstract void OnAwake();
         protected abstract void OnEnable();
         protected abstract void OnDisable();
-        protected abstract void OnDestroy();
+        protected abstract void Destroy();
 
         internal void Update()
         {
@@ -53,7 +54,7 @@ namespace EasyGamePlay
                     entityState = EntityState.idle;
                     break;
                 case EntityState.exit:
-                    OnDestroy();
+                    Destroy();
                     break;
             }
         }

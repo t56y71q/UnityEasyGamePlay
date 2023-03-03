@@ -6,6 +6,6 @@ namespace EasyGamePlay
 {
     public interface ILoadObject
     {
-        void LoadObject(UnityEngine.Object @object);
+        UnityEngine.Object @object { get; set; }
     }
 }

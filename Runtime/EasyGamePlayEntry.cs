@@ -4,16 +4,19 @@ using UnityEngine;
 
 namespace EasyGamePlay
 {
-    public static class Entry
+    public class EasyGamePlayEntry:MonoBehaviour
     {
-        public static T CreateGame<T,U>(string resourcesPath) where T:AGame,new() where U: GameConfig
+       [GameAttribute]public string gameClass;
+       [SerializeField] private GameConfig gameConfig;
+
+        private void Awake()
         {
             if (FrameWork.frameWork == null)
             {
                 FrameWork.CreateFrameWork();
             }
-            U gameConfig = Resources.Load<U>(resourcesPath);
-           return FrameWork.frameWork.CreateGame<T>(gameConfig);
+            
+            FrameWork.frameWork.CreateGame(gameClass,gameConfig);
         }
     }
 

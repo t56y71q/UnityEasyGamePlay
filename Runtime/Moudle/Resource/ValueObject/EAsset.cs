@@ -3,24 +3,22 @@ using System.Collections.Generic;
 
 namespace EasyGamePlay
 {
-    public class EAsset
+    public struct EAsset
     {
         public UnityEngine.Object @object { get=> mObject; }
         public bool isValued { get=> valued; }
-        public event Complete completed;
-
+        
         private UnityEngine.Object mObject;
         private bool valued;
         internal string path;
 
         internal static Action<string> unload;
 
-        internal EAsset(string path)
+        internal EAsset(UnityEngine.Object @object, string path)
         {
-            this.mObject = null;
+            this.mObject = @object;
             this.path = path;
-            valued = false;
-            completed = null;
+            valued = true;
         }
 
         public void Unload()
@@ -28,16 +26,7 @@ namespace EasyGamePlay
             if(valued)
                 unload.Invoke(path);
         }
-
-        internal void SetObject(UnityEngine.Object @object)
-        {
-            mObject = @object;
-            valued = true;
-
-            completed?.Invoke(mObject);
-            completed = null;
-        }
-
-        public delegate void Complete(UnityEngine.Object @object);
     }
+
+   
 }

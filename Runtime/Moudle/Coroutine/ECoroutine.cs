@@ -12,7 +12,6 @@ namespace EasyGamePlay
         internal void Init(GameObject gameObject)
         {
             this.unityTick = gameObject.GetComponent<UnityTick>();
-            CoroutineTask.SetAction(StopCoroutine);
         }
 
         internal void Destroy()
@@ -20,9 +19,11 @@ namespace EasyGamePlay
            
         }
 
-        public void StartCoroutine(CoroutineTask coroutineTask)
+        public CoroutineTask StartCoroutine(IEnumerator enumerator)
         {
+            CoroutineTask coroutineTask = new CoroutineTask(enumerator);
             unityTick.StartCoroutine(coroutineTask.CallWarpper());
+            return coroutineTask;
         }
 
         public void StopCoroutine(CoroutineTask coroutineTask)

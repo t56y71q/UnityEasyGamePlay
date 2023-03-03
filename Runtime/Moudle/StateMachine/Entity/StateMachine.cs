@@ -62,7 +62,7 @@ namespace EasyGamePlay
                 {
                     stateExit.Exit();
                     if (current is ITick tick)
-                        FrameWork.frameWork.RemoveStateUpdate(tick);
+                        FrameWork.frameWork.stateMachine.RemoveStateUpdate(tick);
                 } 
 
                 current = aState;
@@ -72,7 +72,7 @@ namespace EasyGamePlay
                     stateEnter.Enter();
 
                     if (current is ITick tick)
-                        FrameWork.frameWork.AddStateUpdate(tick);
+                        FrameWork.frameWork.stateMachine.AddStateUpdate(tick);
                 }
             }
             else
@@ -91,9 +91,9 @@ namespace EasyGamePlay
                     stateEnter.Enter();
 
                     if (current is ITick tick)
-                        FrameWork.frameWork.AddStateUpdate(tick);
+                        FrameWork.frameWork.stateMachine.AddStateUpdate(tick);
                 }
-                FrameWork.frameWork.AddStateMachine(this);
+                FrameWork.frameWork.stateMachine.AddStateMachine(this);
             }
             else
             {
@@ -110,7 +110,7 @@ namespace EasyGamePlay
               
                 if(i < transistions.Count)
                 {
-                    FrameWork.frameWork.AddStateMachine(this);
+                    FrameWork.frameWork.stateMachine.AddStateMachine(this);
                     NextState(transistions[i].id);
                 }
                 else if (current is ISubStateMachine subStateMachine)

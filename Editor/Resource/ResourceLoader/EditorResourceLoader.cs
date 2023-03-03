@@ -13,12 +13,12 @@ namespace EasyGamePlay.Editor
 
         protected override void OnLoadObjectAsync(string assetPath, Type type, ILoadObject loadObject)
         {
-            FrameWork.frameWork.NextFrame(delegate () { loadObject.LoadObject(AssetDatabase.LoadAssetAtPath(assetPath, type)); });
+            FrameWork.frameWork.NextFrame(delegate () { loadObject.@object=AssetDatabase.LoadAssetAtPath(assetPath, type); });
         }
 
         protected override void OnLoadObjectAsync<T>(string assetPath, ILoadObject loadObject)
         {
-            FrameWork.frameWork.NextFrame(delegate () { AssetDatabase.LoadAssetAtPath<T>(assetPath); });
+            FrameWork.frameWork.NextFrame(delegate () { loadObject.@object=AssetDatabase.LoadAssetAtPath<T>(assetPath); });
         }
 
         protected override void OnUnload()

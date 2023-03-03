@@ -8,24 +8,35 @@ namespace EasyGamePlay
     {
         public AGame game { get=> mGame; }
         public GameObject gameObject { get => @object; }
+
         public World world { get => mWorld; }
         public SystemManager systemManager { get => mSystemManager; }
+        public ERepository repository { get => mRepository; }
+        public EStateMachine stateMachine { get => mStateMachine; }
+        public ESerialize serialize { get => mSerialize; }
+        public EPool pool { get => mPool; }
+        public ETimer timer { get => mTimer; }
+        public ECoroutine coroutine { get => mCoroutine; }
+        public EResource resource { get => mResource; }
+        public PanelSystem panelSystem { get => mPanelSystem; }
 
         private AGame mGame;
         private GameObject @object;
 
-        private GameLoop gameLoop;
-        private ERepository repository;
-        private EStateMachine stateMachine;
-        private Exception exception;
-        private Logger logger;
-        private ESerialize serialize;
-        private EPool pool;
-        private ETimer timer;
-        private ECoroutine coroutine;
-        private EResource resource;
+        private ERepository mRepository;
+        private EStateMachine mStateMachine;
+        private ESerialize mSerialize;
+        private EPool mPool;
+        private ETimer mTimer;
+        private ECoroutine mCoroutine;
+        private EResource mResource;
         private World mWorld;
         private SystemManager mSystemManager;
+        private PanelSystem mPanelSystem;
+
+        private GameLoop gameLoop;
+        private Exception exception;
+        private Logger logger;
 
         private Queue<Entity> entities;
 
@@ -50,35 +61,37 @@ namespace EasyGamePlay
             logger = new Logger(Debug.unityLogger.logHandler, exception);
             Debug.unityLogger.logHandler = logger;
 
-            gameLoop = new GameLoop();
-            repository = new ERepository();
-            stateMachine = new EStateMachine();
-            serialize = new ESerialize();
-            pool = new EPool();
-            timer = new ETimer();
-            coroutine = new ECoroutine();
-            resource = new EResource();
-            mWorld = new World();
-            entities = new Queue<Entity>(32);
+            mRepository = new ERepository();
+            mSerialize = new ESerialize();
+            mPool = new EPool();
             mSystemManager = new SystemManager();
 
             if (!Application.isEditor)
                 quit += Application.Quit;
         }
 
-        internal T CreateGame<T>(GameConfig gameConfig) where T:AGame,new()
+        internal void CreateGame(string gameType,GameConfig gameConfig) 
         {
             @object = new GameObject();
             @object.name = "FrameWork";
 
-            T game = new T();
-            mGame = game;
+            Type type = Type.GetType(gameType);
+            mGame = Activator.CreateInstance(type) as AGame;
+
+            gameLoop = new GameLoop();
+            mTimer = new ETimer(mPool);
+            mCoroutine = new ECoroutine();
+            mResource = new EResource(mSerialize);
+            mStateMachine = new EStateMachine();
+            mPanelSystem = new PanelSystem();
+            mWorld = new World();
+
+            entities = new Queue<Entity>(32);
+            Entity.stateUpdate = entities.Enqueue;
 
             preload?.Invoke();
             OnGameLoad(gameConfig);
             NextFrame(delegate () { game.Init(gameConfig); load?.Invoke(); });
-
-            return game;
         }
 
         public static void CreateFrameWork() 
@@ -89,6 +102,7 @@ namespace EasyGamePlay
 
         public void Quit()
         {
+            Debug.Log("Quit");
             game.gameState.isPlaying = false;
         }
 
@@ -115,10 +129,14 @@ namespace EasyGamePlay
             resource.LoadSetting(gameConfig.resourceSetting);
 
             gameLoop.AddTick(this);
+
+            mWorld.Init(mResource, mSerialize, mCoroutine, gameObject);
         }
 
         private void OnGameUnload()
         {
+            mWorld.Destroy();
+
             gameLoop.RemoveTick(this);
 
             coroutine.Destroy();
@@ -175,50 +193,6 @@ namespace EasyGamePlay
         }
         #endregion
 
-        #region Respository
-        public void RegistRespository(IRepository repository)
-        {
-            this.repository.Regist(repository);
-        }
-
-        public void UnRegistRespository<T>() where T : class, IRepository
-        {
-            repository.UnRegist<T>();
-        }
-
-        public T GetRepository<T>() where T : class, IRepository
-        {
-            return repository.GetRepository<T>();
-        }
-
-        public void Command<T>() where T : struct, ICommand
-        {
-            repository.Command<T>();
-        }
-
-        public T Request<T>(IRequest<T> request)
-        {
-            return repository.Request<T>(request);
-        }
-        #endregion
-
-        #region StateMachine
-        public void AddStateMachine(StateMachine stateMachine)
-        {
-            this.stateMachine.AddStateMachine(stateMachine);
-        }
-
-        internal void AddStateUpdate(ITick tick)
-        {
-            stateMachine.AddStateUpdate(tick);
-        }
-
-        internal void RemoveStateUpdate(ITick tick)
-        {
-            stateMachine.RemoveStateUpdate(tick);
-        }
-        #endregion
-
         #region Exception
         public void AddException<T>(Action<System.Exception> action) where T : System.Exception
         {
@@ -233,98 +207,6 @@ namespace EasyGamePlay
         internal void SendException(System.Exception exception)
         {
             this.exception.SendException(exception);
-        }
-        #endregion
-
-        #region Serialize
-        public string Serialize(object serializeAble, SerializeType serializeType)
-        {
-            return serialize.Serialize(serializeAble, serializeType);
-        }
-
-        public T DeSerialize<T>(string data, SerializeType serializeType)
-        {
-            return serialize.DeSerialize<T>(data, serializeType);
-        }
-
-        public object DeSerialize(string data, Type type, SerializeType serializeType)
-        {
-            return serialize.DeSerialize(data, type, serializeType);
-        }
-
-        public void OverWrite(string data, object @object, SerializeType serializeType)
-        {
-            serialize.OverWrite(data, @object, serializeType);
-        }
-        #endregion
-
-        #region Pool
-        public void BuildPool<T>(Func<T> create, Action<T> destroy, int count) where T : IPoolAble
-        {
-            pool.BuildPool<T>(create, destroy, count);
-        }
-        public void DestroyPool<T>() where T : IPoolAble
-        {
-            pool.DestroyPool<T>();
-        }
-        public T GetPoolAble<T>() where T : IPoolAble
-        {
-            return pool.Get<T>();
-        }
-        public void ReleasePoolAble<T>(T @object) where T : IPoolAble
-        {
-            pool.Release<T>(@object);
-        }
-        #endregion
-
-        #region Timer
-        public Timer StartTimer(float time, Action finish, Action<float> update = null, bool isLoop = false)
-        {
-            return timer.StartTimer(time, finish, update, isLoop);
-        }
-
-        public void StopTimer(Timer timer)
-        {
-            this.timer.StopTimer(timer);
-        }
-        #endregion
-
-        #region Coroutine
-        public void StartCoroutine(CoroutineTask coroutineTask)
-        {
-            coroutine.StartCoroutine(coroutineTask);
-        }
-
-        public void StopCoroutine(CoroutineTask coroutineTask)
-        {
-            coroutine.StopCoroutine(coroutineTask);
-        }
-        #endregion
-
-        #region Resource
-        public EAsset LoadAssetAsync(string path)
-        {
-            return resource.LoadAssetAsync(path);
-        }
-
-        public void LoadSetting(ResourceSetting resourceSetting)
-        {
-            resource.LoadSetting(resourceSetting);
-        }
-
-        public void LoadInfo(string key, AssetInfoFile infoFile)
-        {
-            resource.LoadInfo(key, infoFile);
-        }
-
-        public void UnloadInfo(string key)
-        {
-            resource.UnloadInfo(key);
-        }
-
-        public void AddLoaderCreator(ResourceLoaderCreator resourceLoaderCreator)
-        {
-            resource.AddLoaderCreator(resourceLoaderCreator);
         }
         #endregion
 
