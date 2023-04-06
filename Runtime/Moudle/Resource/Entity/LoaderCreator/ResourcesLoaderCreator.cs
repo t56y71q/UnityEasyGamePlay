@@ -6,7 +6,7 @@ namespace EasyGamePlay
 {
     class ResourcesLoaderCreator : ResourceLoaderCreator
     {
-        public ResourceLoader CreateLoader(string bundleName, string folder, string postFixed)
+        public ResourceLoader CreateLoader(string bundleName, string folder)
         {
             if(bundleName=="Resources")
                 return new ResourcesResourceLoader(bundleName,null);

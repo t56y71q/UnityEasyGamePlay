@@ -11,20 +11,20 @@ namespace EasyGamePlay
         protected override void OnAwake()
         {
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            canvasGroup.interactable = false;
-            canvasGroup.alpha = 0.0f;
         }
 
         protected override void OnDisable()
         {
             canvasGroup.interactable = false;
             canvasGroup.alpha = 0.0f;
+            canvasGroup.blocksRaycasts = false;
         }
 
         protected override void OnEnable()
         {
             canvasGroup.interactable = true;
             canvasGroup.alpha = 1.0f;
+            canvasGroup.blocksRaycasts = true;
         }
     }
 }

@@ -8,7 +8,7 @@ namespace EasyGamePlay
 {
     public class ETimer:ITick
     {
-        private OrderList<TimeStep> updates;
+        private List<Timer> updates;
         private Queue<Timer> adds;
         private Queue<Timer> removes;
 
@@ -27,18 +27,18 @@ namespace EasyGamePlay
 
         internal void Init()
         {
-            updates = new OrderList<TimeStep>(count);
+            updates = new List<Timer>(count);
             adds = new Queue<Timer>(count/2);
             removes = new Queue<Timer>(count / 2);
 
-            TimeStep.SetAction(adds.Enqueue, pool.Release<Timer>, updates.Remove);
+            Timer.remove = updates.RemoveAt;
+            Timer.release = pool.Release<Timer>;
 
             pool.BuildPool<Timer>(delegate () { return new Timer(); }, delegate (Timer timer) { }, count);
         }
 
         public Timer StartTimer(float time, Action finish, Action<float> update = null,bool isLoop = false )
         {
-
             Timer timer = pool.Get<Timer>();
             timer.SetProperty(time, finish, update, isLoop);
             adds.Enqueue(timer);
@@ -70,57 +70,24 @@ namespace EasyGamePlay
                 isTicking = false;
             }
 
-            TimeStep timeStep;
-            Timer timer;
-            int i;
-
             while (adds.Count > 0)
             {
-                timer = adds.Dequeue();
-                timeStep = new TimeStep(timer);
-                i = updates.Find(timeStep);
-
-                if ((uint)i < updates.Count)
-                    updates[i].AddTimer(timer);
-                else
-                    updates.Insert(timeStep);
+                updates.Add(adds.Dequeue());
             }
 
             while (removes.Count > 0)
             {
-                //Timer 的地址作为句柄从updates中查找
-                timer = removes.Dequeue();
-                for (i = 0; i < updates.Count && !updates[i].RemoveTimer(timer); i++) ;
+                updates.Remove(removes.Dequeue());
             }
 
             if (updates.Count > 0)
             {
-                if (pointSecond >= spanTime)
+                if (pointSecond > spanTime)
                 {
                     pointSecond = 0.0f;
-                    for (i = updates.Count - 1; i >= 0; i--)
+                    for (int i = updates.Count - 1; i >= 0; i--)
                     {
-                        timeStep = updates[i];
-                        timeStep.Update(spanTime);
-
-                        if (timeStep.time <= 0f)
-                        {
-                            timeStep.Finish(adds);
-                            updates.RemoveAt(i);
-                        }
-                        else
-                        {
-                            updates.Update(i, timeStep);
-                            i--;
-                            break;
-                        }
-                    }
-
-                    for (; i >= 0; i--)
-                    {
-                        timeStep = updates[i];
-                        timeStep.Update(spanTime);
-                        updates.Update(i, timeStep);
+                        updates[i].Update(spanTime,i);
                     }
                 }
                 pointSecond += UnityEngine.Time.deltaTime;

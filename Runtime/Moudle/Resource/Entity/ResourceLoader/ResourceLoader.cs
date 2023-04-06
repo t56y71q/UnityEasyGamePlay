@@ -6,7 +6,8 @@ namespace EasyGamePlay
 { 
     public abstract class ResourceLoader
     {
-        private string bundleName;
+        protected string bundleName;
+        private int assetCount = 0;
         private int count = 0;
         protected ResourceLoaderStatus resourceLoaderStatus;
 
@@ -19,13 +20,21 @@ namespace EasyGamePlay
 
         internal void LoadObjectAsync(string assetPath, Type type, SmartObject smartObject)
         {
-            count++;
+            if(assetCount==0)
+            {
+                count++;
+            }
+            assetCount++;
             OnLoadObjectAsync(assetPath, type,  smartObject);
         }
 
         internal void LoadObjectAsync<T>(string assetPath,  SmartObject smartObject) where T : UnityEngine.Object
         {
-            count++;
+            if (assetCount == 0)
+            {
+                count++;
+            }
+            assetCount++;
             OnLoadObjectAsync<T>(assetPath,  smartObject); 
         }
 
@@ -34,13 +43,36 @@ namespace EasyGamePlay
             if(@object!=null)
             {
                 OnUnloadObject(@object);
-                if(--count==0)
+                if(--assetCount == 0 && --count == 0)
                 {
                     OnUnload();
                     remove(bundleName);
                 }
             }
         }
+
+        internal void LoadScene(Action completed)
+        {
+            assetCount++;
+            OnLoadScene(completed);
+        }
+
+        public void Add()
+        {
+            count++;
+        }
+
+        public void Release()
+        {
+            if(--count==0)
+            {
+                OnUnload();
+                remove(bundleName);
+            }
+        }
+      
+
+        protected abstract void OnLoadScene(Action completed);
 
         protected abstract void OnLoadObjectAsync(string assetPath, Type type,  ILoadObject loadObject);
         protected abstract void OnLoadObjectAsync<T>(string assetPath, ILoadObject loadObject) where T : UnityEngine.Object;

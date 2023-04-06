@@ -7,8 +7,6 @@ namespace EasyGamePlay.Editor
     public static class FrameWorkEditor 
     {
         public static ResourceEditor resourceEditor=new ResourceEditor();
-        public static SceneEditor sceneEditor = new SceneEditor();
-        public static LevelEditor levelEditor = new LevelEditor();
         public static GameColloction gameColloction = new GameColloction();
         public static SystemManager systemManager = new SystemManager();
 
@@ -24,7 +22,6 @@ namespace EasyGamePlay.Editor
                     FrameWork.frameWork.resource.AddLoaderCreator(new EditorResourceLoaderCreator());
                 }
             };
-            levelEditor.colseLevel += sceneEditor.CloseScene;
             gameColloction.Init();
         }
 

@@ -9,5 +9,8 @@ namespace EasyGamePlay
     {
         [Header("Resource")]
         public ResourceSetting resourceSetting;
+
+        [Header("Input")]
+        public UnityEngine.InputSystem.InputActionAsset InputAsset;
     }
 }

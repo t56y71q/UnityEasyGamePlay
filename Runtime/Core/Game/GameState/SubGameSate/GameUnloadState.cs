@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace EasyGamePlay
 {
@@ -16,14 +17,11 @@ namespace EasyGamePlay
         {
             UnityEngine.Debug.Log("UnloadGameState");
 
-            Level level = FrameWork.frameWork.world.level;
-            if (level != null)
+            EScene scene = FrameWork.frameWork.world.scene;
+            if (scene != null)
             {
-                level.unloaded += delegate (Level mLevel)
-                  {
-                      gameState.isUnloaded = true;
-                  };
-                LevelLoader.sceneLoader.UnloadScene(level.scene);
+                var async=SceneManager.UnloadSceneAsync(scene.scene);
+                async.completed += delegate (UnityEngine.AsyncOperation asyncOperation) { gameState.isUnloaded = true; };
             }
             else
             {

@@ -6,19 +6,8 @@ namespace EasyGamePlay
 {
     public abstract class Controller:Actor
     {
-        public Pawn pawn { get=> mPawn; }
+        public abstract Pawn pawn { get; set; }
 
-        private Pawn mPawn;
-
-        public void Process(Pawn pawn)
-        {
-            this.mPawn = pawn;
-        }
-
-        public void UnProcess()
-        {
-            mPawn = null;
-        }
     }
 
     public abstract class PlayerController : Controller

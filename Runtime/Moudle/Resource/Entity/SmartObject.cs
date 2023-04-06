@@ -6,8 +6,9 @@ namespace EasyGamePlay
 {
     class SmartObject: ILoadObject
     {
-        public UnityEngine.Object @object { get=> mObject; set=> SetObject(value); }
-        public Action<UnityEngine.Object> completed;
+        public UnityEngine.Object @object { get=> mObject; set=>SetObject(value); }
+        public Action<EAsset> completed { get; set; }
+        public string path;
         public string bundleName { get;  }
         public string assetPath { get; }
         public Type type { get; }
@@ -19,6 +20,7 @@ namespace EasyGamePlay
 
         public SmartObject(AssetInfo assetInfo)
         {
+            this.path = assetInfo.path;
             this.bundleName = assetInfo.bundleName;
             this.assetPath = assetInfo.assetPath;
             type = Type.GetType(assetInfo.type);
@@ -45,10 +47,10 @@ namespace EasyGamePlay
             return count == 0;
         }
 
-        public void SetObject(UnityEngine.Object @object)
+        private void SetObject(UnityEngine.Object @object)
         {
-            this.mObject = @object;
-            completed?.Invoke(@object);
+            mObject = @object;
+            completed?.Invoke(new EAsset(@object, path));
             completed = null;
         }
     }

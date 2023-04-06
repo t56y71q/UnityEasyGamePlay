@@ -6,6 +6,6 @@ namespace EasyGamePlay
 {
     public interface ResourceLoaderCreator
     {
-        ResourceLoader CreateLoader(string bundleName,string folder,string postFixed);
+        ResourceLoader CreateLoader(string bundleName,string folder);
     }
 }

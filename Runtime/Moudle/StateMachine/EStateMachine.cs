@@ -33,9 +33,9 @@ namespace EasyGamePlay
             }
         }
 
-        internal void AddStateUpdate(ITick tick)
+        internal void AddStateUpdate(ITick state) 
         {
-            adds.Enqueue(tick);
+            adds.Enqueue(state);
             if (!isTicking)
             {
                 isTicking = true;
@@ -43,9 +43,9 @@ namespace EasyGamePlay
             }
         }
 
-        internal void RemoveStateUpdate(ITick tick)
+        internal void RemoveStateUpdate(ITick state)  
         {
-            removes.Enqueue(tick);
+            removes.Enqueue(state);
         }
 
         internal void Destroy()

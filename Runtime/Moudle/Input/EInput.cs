@@ -10,13 +10,31 @@ namespace EasyGamePlay
         private InputActionAsset inputAsset;
         private SortedList<string, BaseInputAction> inputActions = new SortedList<string, BaseInputAction>(10);
 
+        public void LoadAsset(InputActionAsset inputAsset)
+        {
+            this.inputAsset = inputAsset;
+            inputAsset.Enable();
+        }
+
+        public void UnloadAsset()
+        {
+            if(inputAsset!=null)
+            {
+                inputAsset.Disable();
+            }
+        }
+
         public void Bind(string name,Action start,Action perform,Action cancel)
         {
             if(!inputActions.TryGetValue(name,out BaseInputAction baseInputAction))
             {
                 var action= inputAsset.FindAction(name);
                 if (action == null)
+                {
+                    Debug.Log("Not find InputAction");
                     return;
+                }
+                    
 
                 baseInputAction = new InputAction();
                 inputActions.Add(name, baseInputAction);
@@ -61,7 +79,10 @@ namespace EasyGamePlay
             {
                 var action = inputAsset.FindAction(name);
                 if (action == null)
+                {
+                    Debug.Log("Not find InputAction");
                     return;
+                }
 
                 baseInputAction = new InputAction<T>();
                 inputActions.Add(name, baseInputAction);

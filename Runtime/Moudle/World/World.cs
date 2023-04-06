@@ -7,129 +7,109 @@ namespace EasyGamePlay
 {
     public class World
     {
-        public Level level { get => mLevel; }
+        public EScene scene { get => mScene; }
 
-        private Level mLevel;
-        private Scene scene;
+        private EScene mScene;
+        private EScene presistent;
         private EResource eResource;
         private ESerialize eSerialize;
 
-        private GameObject panels;
-        private List<AiController> aiControllers=new List<AiController>();
-
-        internal void Init(EResource eResource,ESerialize eSerialize,ECoroutine coroutine, GameObject gameObject)
+        internal void Init(EResource eResource,ESerialize eSerialize,ECoroutine coroutine)
         {
             this.eResource = eResource;
             this.eSerialize = eSerialize;
-            scene = SceneManager.GetActiveScene();
-
-            LevelLoader.sceneLoader = new SceneLoader(coroutine, eResource, eSerialize);
-
-            panels = new GameObject();
-            panels.name = "Panels";
-            panels.transform.SetParent(gameObject.transform);
+            presistent=new EScene(SceneManager.GetActiveScene());
         }
 
         internal void Destroy()
         {
-            GameObject.Destroy(panels);
+           
         }
 
-        public void SpawnActor<T>(string prefab, ETransform transform, Action<T> completed) where T:Actor,new()
+        public T SpawnActor<T>(UnityEngine.GameObject prefab, ETransform transform) where T : Actor, new()
         {
-            if (string.IsNullOrEmpty(prefab))
+            T actor = Actor.CreateActor<T>(prefab, transform);
+            if (actor != null)
             {
-                if(typeof(T)!=typeof(EmptyActor))
-                {
-                    Debug.LogError("Not Find Prefab file");
-                    return;
-                }
+                actor.eScene = scene;
+                scene.actors.Add(actor);
+                return actor;
             }
+            Debug.LogError("Prefab is not adjust to " + typeof(T));
+            return null;
+        }
 
-            eResource.LoadAssetAsync(prefab, delegate (EAsset asset)
+        public Actor SpawnActor(UnityEngine.GameObject prefab, ETransform transform)
+        {
+            Actor actor = Actor.CreateActorFromPrefab(prefab, transform);
+            if (actor != null)
             {
-                GameObject mPrefab = asset.@object as GameObject;
-                if (mPrefab.TryGetComponent<ActorProperty>(out ActorProperty actorProperty))
-                {
-                    T actor = Actor.CreateActor<T>(actorProperty);
-                    actor.SetPrefab(prefab);
-                    transform.SetUnityTransform(actor.transform);
-                    actor.eScene = level.scene;
-                    level.scene.actors.Add(actor);
-                    completed?.Invoke(actor);
-                }
-            });
+                actor.eScene = scene;
+                scene.actors.Add(actor);
+                return actor;
+            }
+            return null;
         }
 
         public void DestroyActor(Actor actor)
         {
-            level.scene.actors.Remove(actor);
+            actor.eScene.actors.Remove(actor);
             Entity.Destroy(actor);
         }
 
-        public void OpenLevel<T>(string levelPath) where T:LevelLoader,new()
+        public void OpenScene(string sceneName) 
         {
-            if (string.IsNullOrEmpty(levelPath))
+            if (string.IsNullOrEmpty(sceneName))
                 return;
-            LoadLevelAsset<T>(levelPath);
+
+            eResource.LoadSceneAsync(sceneName, delegate () 
+            {
+                var async = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+                async.completed += delegate (AsyncOperation asyncOperation) {
+                    mScene?.Unload();
+                    mScene = new EScene(sceneName,SceneManager.GetSceneByName(sceneName));
+                };
+            });
         }
 
         public void MoveToPresistent(Actor actor)
         {
-            if(level.scene== actor.scene)
+            if(scene== actor.scene)
             {
-                level.scene.actors.Remove(actor);
-                actor.eScene = null;
-                SceneManager.MoveGameObjectToScene(actor.gameObject, scene);
+                scene.actors.Remove(actor);
+                actor.eScene = presistent;
+                SceneManager.MoveGameObjectToScene(actor.gameObject, presistent.scene);
             }
         }
 
-        public void CreateHud<T>(string prefab, Action<T> completed) where T : Hud, new()
+        public T CreateHud<T>(GameObject prefab) where T : Hud, new()
         {
-            SpawnActor<T>(prefab, ETransform.GetOrigin(), delegate (T hud) { level.mHud = hud; completed?.Invoke(hud); });
+            T hud= SpawnActor<T>(prefab, ETransform.GetOrigin());
+            scene.SetHud(hud); 
+            return hud;
         }
 
-        public void CreatePanel<T>(string prefab, ETransform transform,Action<T> completed) where T:Panel,new()
+        public T CreatePlayerController<T>(GameObject prefab) where T : PlayerController, new()
         {
-            SpawnActor<T>(prefab, transform, delegate (T panel) {panel.transform.SetParent(panels.transform) ; completed?.Invoke(panel); });
+            T playerController= SpawnActor<T>(prefab, ETransform.GetOrigin());
+            scene.SetPlayerController(playerController);
+            return playerController;
         }
 
-        public void CreatePlayerController<T>(string prefab, Action<T> completed) where T : PlayerController, new()
+        public PlayerController CreatePlayerController(GameObject prefab)
         {
-            SpawnActor<T>(prefab, ETransform.GetOrigin(), delegate (T controller) { level.mPlayerController = controller; completed?.Invoke(controller); });
+            PlayerController playerController= SpawnActor(prefab, ETransform.GetOrigin()) as PlayerController;
+            scene.SetPlayerController(playerController);
+            return playerController;
         }
 
-        public void CreateAiController<T>(string prefab, Action<T> completed) where T : AiController, new()
+        public void DestroyPlayerController()
         {
-            SpawnActor<T>(prefab, ETransform.GetOrigin(), delegate (T controller) { aiControllers.Add(controller); completed?.Invoke(controller); });
-        }
-
-        public AiController[] GetAiControllers()
-        {
-            return aiControllers.ToArray();
-        }
-
-        private void LoadLevelAsset<T>(string path) where T : LevelLoader, new()
-        {
-            eResource.LoadAssetAsync(path,delegate(EAsset asset)
+            if(scene.playerController!=null)
             {
-                LevelAsset levelAsset = eSerialize.DeSerialize<LevelAsset>((asset.@object as TextAsset).text, SerializeType.json);
-                asset.Unload();
-
-                T levelLoader = new T();
-                if (mLevel != null)
-                {
-                    mLevel.unloaded += delegate (Level level)
-                    {
-                        mLevel = levelLoader.Load(levelAsset);
-                    };
-                    LevelLoader.sceneLoader.UnloadScene(mLevel.scene);
-                }
-                else
-                {
-                    mLevel = levelLoader.Load(levelAsset);
-                }
-            });
+                DestroyActor(scene.playerController);
+                scene.SetPlayerController (null);
+            }
         }
     }
 }

@@ -5,10 +5,13 @@ namespace EasyGamePlay
     public class Timer: IPoolAble
     {
         public bool isLoop { get; set; }
-        public float time { get => stopTime; }
+        public float stopTime { get; set; }
         public event Action finish;
         public event Action<float> update;
-        private float stopTime;
+        internal float time { get; set; }
+
+        internal static Action<int> remove;
+        internal static Action<Timer> release;
 
         internal void SetProperty(float stopTime, Action finish, Action<float> update, bool isLoop = false)
         {
@@ -16,11 +19,25 @@ namespace EasyGamePlay
             this.update = update;
             this.stopTime = stopTime;
             this.isLoop = isLoop;
+            time = 0.0f;
         }
 
-        internal void Update(float ratio)
+        internal void Update(float deltaTime,int index)
         {
-            update(ratio);
+            this.time += deltaTime;
+            update?.Invoke(this.time / stopTime);
+            if(this.time>stopTime)
+            {
+                if(isLoop)
+                    time = 0.0f;
+                else
+                {
+                    remove(index);
+                    release(this);
+                }
+                    
+                finish();
+            }
         }
 
         internal bool IsUpdateVaild()
@@ -28,9 +45,5 @@ namespace EasyGamePlay
             return update != null;
         }
 
-        internal void Finish()
-        {
-            finish();
-        }
     }
 }

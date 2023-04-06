@@ -12,7 +12,6 @@ namespace EasyGamePlay
         private List<ResourceLoaderCreator> loaderCreators = new List<ResourceLoaderCreator>();
 
         private string folder;
-        private string postFixed;
         private ESerialize eSerialize;
 
         public EResource(ESerialize eSerialize)
@@ -31,9 +30,9 @@ namespace EasyGamePlay
             {
                 if (smartObject.IsZeroCount())
                 {
+                    smartObject.completed += completed;
                     Load(smartObject);
                     smartObject.Add();
-                    smartObject.completed += delegate (UnityEngine.Object @object) { completed?.Invoke(new EAsset(smartObject.@object, path)); };
                 } 
                 else
                 {
@@ -45,14 +44,31 @@ namespace EasyGamePlay
                 UnityEngine.Debug.LogWarning("has no asset in this path:"+path);
         }
 
+        internal void LoadSceneAsync(string scene,Action complete )
+        {
+            if (assets.TryGetValue(scene, out SmartObject smartObject)&&smartObject.type==typeof(UnityEngine.SceneManagement.Scene))
+            {
+                if (!resourceLoaders.TryGetValue(smartObject.bundleName,out ResourceLoader resourceLoader))
+                {
+                    resourceLoader = CreateLoader(smartObject.bundleName);
+                    resourceLoaders.Add(smartObject.bundleName, resourceLoader);
+                    UnityEngine.Debug.Log("ResourceLoader Count:" + resourceLoaders.Count);
+                }
+                smartObject.Add();
+                resourceLoader.LoadScene(complete);
+            }
+            else
+                UnityEngine.Debug.LogWarning("has no Scene in this path:" + scene);
+        }
+
         public void LoadSetting(ResourceSetting resourceSetting)
         {
             folder = resourceSetting.folder + "/";
-
-            if (string.IsNullOrEmpty(postFixed))
-                postFixed = "." + resourceSetting.postFixed;
+           
+            if (!string.IsNullOrEmpty(resourceSetting.postFixed))
+                ABResourceLoader.postfixed = "." + resourceSetting.postFixed;
             else
-                postFixed = string.Empty;
+                ABResourceLoader.postfixed = string.Empty;
 
             AssetInfoFile infoFile = eSerialize.DeSerialize<AssetInfoFile>(resourceSetting.defaultAssetInfoFile.text,SerializeType.json);
             if(infoFile.assetInfos!=null)
@@ -60,6 +76,26 @@ namespace EasyGamePlay
 
             AddLoaderCreator(new ResourcesLoaderCreator());
             AddLoaderCreator(new ABLoaderCreator());
+
+            ABResourceLoader.loadLoader =delegate(string bundleName) 
+            {
+                if(!resourceLoaders.TryGetValue(bundleName,out ResourceLoader resourceLoader))
+                {
+                    resourceLoader = CreateLoader(bundleName);
+                    resourceLoaders.Add(bundleName, resourceLoader);
+                }
+                resourceLoader.Add();
+            };
+            ABResourceLoader.unloadLoader =delegate(string bundleName) 
+            {
+                if (resourceLoaders.TryGetValue(bundleName, out ResourceLoader resourceLoader))
+                {
+                    resourceLoader.Release();
+                }
+            };
+            string mainfestPath = folder + System.IO.Path.GetFileNameWithoutExtension(resourceSetting.folder.ToLower());
+            if (System.IO.File.Exists(mainfestPath))
+                ABResourceLoader.LoadMainfest(mainfestPath);
         }
 
         public void LoadInfo(string key, AssetInfoFile infoFile)
@@ -115,18 +151,18 @@ namespace EasyGamePlay
         {
             if(!resourceLoaders.TryGetValue(smartObject.bundleName, out ResourceLoader resourceLoader))
             {
-                resourceLoader = CreateLoader(smartObject.bundleName,folder,postFixed);
+                resourceLoader = CreateLoader(smartObject.bundleName);
                 resourceLoaders.Add(smartObject.bundleName, resourceLoader);
             }
             resourceLoader.LoadObjectAsync(smartObject.assetPath, smartObject.type, smartObject);
         }
 
-        private ResourceLoader CreateLoader(string bundleName, string folder, string postFixed)
+        private ResourceLoader CreateLoader(string bundleName)
         {
             ResourceLoader resourceLoader = null;
             for (int i=0;i<loaderCreators.Count;i++)
             {
-                resourceLoader = loaderCreators[i].CreateLoader(bundleName,folder, postFixed);
+                resourceLoader = loaderCreators[i].CreateLoader(bundleName,folder);
                 if (resourceLoader != null)
                     break; 
             }

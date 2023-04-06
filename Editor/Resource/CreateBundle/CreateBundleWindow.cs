@@ -28,14 +28,12 @@ namespace EasyGamePlay.Editor
                 }
                 GUILayout.EndHorizontal();
 
-                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
                 {
                     GUILayout.Label("Bundle:");
                     GUILayout.Space(2f);
                     bundleName = EditorGUILayout.TextField(bundleName);
                 }
-                GUILayout.BeginHorizontal();
-
                 GUILayout.EndHorizontal();
 
                 EditorGUILayout.Separator();
@@ -57,7 +55,7 @@ namespace EasyGamePlay.Editor
                 }
                 GUILayout.EndHorizontal();
             }
-            GUILayout.BeginVertical();
+            GUILayout.EndVertical();
         }
 
         [MenuItem("EasyGamePlay/Resource/CreateBundle")]

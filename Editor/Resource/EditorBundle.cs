@@ -11,30 +11,52 @@ namespace EasyGamePlay.Editor
         public string group="default";
         public List<EditorAssetInfo> editorAssetInfos;
 
-        public AssetInfo[] GetAssetInfos()
+        public AssetInfo GetAssetInfo(int index)
         {
-            AssetInfo[] assetInfos = new AssetInfo[editorAssetInfos.Count];
-
-            AssetInfo assetInfo;
-            for (int i=0;i< editorAssetInfos.Count;i++)
-            {
-                assetInfo = new AssetInfo(editorAssetInfos[i].path,name, Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(editorAssetInfos[i].@object)), editorAssetInfos[i].@object.GetType());
-                assetInfos[i] = assetInfo;
-            }
-            return assetInfos;
+            EditorAssetInfo editorAssetInfo = editorAssetInfos[index];
+            string path = AssetDatabase.GetAssetPath(editorAssetInfo.@object);
+            return new AssetInfo(editorAssetInfo.path, name, Path.GetFileNameWithoutExtension(path), editorAssetInfo.@object.GetType());
         }
 
-        public AssetInfo[] GetEditorAssetInfos()
+        public AssetInfo GetSimulateAssetInfo(int index)
         {
-            AssetInfo[] assetInfos = new AssetInfo[editorAssetInfos.Count];
+            EditorAssetInfo editorAssetInfo = editorAssetInfos[index];
+            return new AssetInfo(editorAssetInfo.path, name, AssetDatabase.GetAssetPath(editorAssetInfo.@object), editorAssetInfo.@object.GetType());
+        }
 
-            AssetInfo assetInfo;
-            for (int i = 0; i < editorAssetInfos.Count; i++)
+        public AssetInfo GetScene(int index, List<EditorBuildSettingsScene> scenes)
+        {
+            EditorAssetInfo editorAssetInfo = editorAssetInfos[index];
+            string path = AssetDatabase.GetAssetPath(editorAssetInfo.@object);
+            for (int j = 0; j < scenes.Count; j++)
             {
-                assetInfo = new AssetInfo(editorAssetInfos[i].path, name, AssetDatabase.GetAssetPath(editorAssetInfos[i].@object), editorAssetInfos[i].@object.GetType());
-                assetInfos[i] = assetInfo;
+                if (scenes[j].path == path)
+                {
+                    scenes.RemoveAt(j);
+                    break;
+                }
             }
-            return assetInfos;
+            return new AssetInfo(editorAssetInfo.path, name, Path.GetFileNameWithoutExtension(path), typeof(UnityEngine.SceneManagement.Scene));
+        }
+
+        public AssetInfo GetSimulateScene(int index, List<EditorBuildSettingsScene> scenes)
+        {
+            EditorAssetInfo editorAssetInfo = editorAssetInfos[index];
+            string path = AssetDatabase.GetAssetPath(editorAssetInfo.@object);
+            bool isExist = false;
+            for (int j = 0; j < scenes.Count; j++)
+            {
+                if (scenes[j].path == path)
+                {
+                    isExist = true;
+                }
+            }
+
+            if (!isExist)
+            {
+                scenes.Add(new EditorBuildSettingsScene(path, true));
+            }
+            return new AssetInfo(editorAssetInfo.path, name, path, typeof(UnityEngine.SceneManagement.Scene));
         }
 
         public string[] GetPathes()
@@ -84,6 +106,21 @@ namespace EasyGamePlay.Editor
                 }
             }
             return null;
+        }
+
+        public bool HasScene()
+        {
+            return editorAssetInfos.Count > 0 && editorAssetInfos[0].@object.GetType() == typeof(SceneAsset);
+        }
+
+        public bool HasPath(string path)
+        {
+            for (int i = 0; i < editorAssetInfos.Count; i++)
+            {
+                if (path == AssetDatabase.GetAssetPath(editorAssetInfos[i].@object))
+                    return true;
+            }
+            return false;
         }
     }
 }

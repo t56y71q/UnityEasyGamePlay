@@ -24,11 +24,11 @@ namespace EasyGamePlay
 
         public void SetActive(bool active)
         {
-            if(this.active!= active)
+            if(this.active != active)
             {
                 if(entityState != EntityState.start)
                 {
-                    if (this.active)
+                    if (active)
                         OnEnable();
                     else
                         OnDisable();

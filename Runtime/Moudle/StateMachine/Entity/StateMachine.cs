@@ -54,7 +54,7 @@ namespace EasyGamePlay
             }
         }
 
-        public void NextState(int id)
+        private void NextState(int id)
         {
             if (states.TryGetValue(id, out AState aState))
             {

@@ -10,6 +10,11 @@ namespace EasyGamePlay
         {
         }
 
+        protected override void OnLoadScene(Action completed)
+        {
+            FrameWork.frameWork.NextFrame(completed);
+        }
+
         protected override void OnLoadObjectAsync(string assetPath, Type type, ILoadObject loadObject)
         {
             var request= Resources.LoadAsync(assetPath, type);

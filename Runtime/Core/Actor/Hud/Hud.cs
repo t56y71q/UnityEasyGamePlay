@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace EasyGamePlay
 {
-    public abstract class Hud:Panel
+    public abstract class Hud:Widget
     {
         protected override void OnAwake()
         {
@@ -13,7 +13,7 @@ namespace EasyGamePlay
                 canvas = gameObject.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             }
-            base.OnAwake();
+            canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
     }
 }

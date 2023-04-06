@@ -29,7 +29,7 @@ namespace EasyGamePlay
 
         public override void Cancel(UnityEngine.InputSystem.InputAction.CallbackContext callbackContext)
         {
-            start();
+            cancel();
         }
 
         public override void Perform(UnityEngine.InputSystem.InputAction.CallbackContext callbackContext)
@@ -39,7 +39,7 @@ namespace EasyGamePlay
 
         public override void Start(UnityEngine.InputSystem.InputAction.CallbackContext callbackContext)
         {
-            cancel();
+            start();
         }
     }
 
@@ -60,7 +60,7 @@ namespace EasyGamePlay
 
         public override void Cancel(UnityEngine.InputSystem.InputAction.CallbackContext callbackContext)
         {
-            start(callbackContext.ReadValue<T>());
+            cancel(callbackContext.ReadValue<T>());
         }
 
         public override void Perform(UnityEngine.InputSystem.InputAction.CallbackContext callbackContext)
@@ -70,21 +70,7 @@ namespace EasyGamePlay
 
         public override void Start(UnityEngine.InputSystem.InputAction.CallbackContext callbackContext)
         {
-            cancel(callbackContext.ReadValue<T>());
+            start(callbackContext.ReadValue<T>());
         }
     }
-
-    //public interface IInputAction : IBaseInputAction
-    //{
-    //    void Preform();
-    //    void Start();
-    //    void Cancel();
-    //}
-
-    //public interface IInputAction<T>: IBaseInputAction where T : struct
-    //{
-    //    void Preform(T param);
-    //    void Start(T param);
-    //    void Cancel(T param);
-    //}
 }

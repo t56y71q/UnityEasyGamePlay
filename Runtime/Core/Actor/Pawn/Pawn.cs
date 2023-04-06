@@ -6,13 +6,22 @@ namespace EasyGamePlay
 {
     public abstract class Pawn:Actor
     {
-        public Controller controller { get => mController; set { mController = value; mController.Process(this); } }
+        public Controller owner { get; set; }
 
-        private Controller mController;
-
-        protected override void OnDestroy()
+        protected override void Destroy()
         {
-            controller?.UnProcess();
+            if(owner!=null)
+            {
+                if(owner is AiController aiController)
+                {
+                    FrameWork.frameWork.world.DestroyActor(aiController);
+                }
+                else
+                {
+                    FrameWork.frameWork.world.DestroyPlayerController();
+                }
+            }
+            base.Destroy();
         }
     }
 }

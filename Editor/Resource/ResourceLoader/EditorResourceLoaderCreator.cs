@@ -6,7 +6,7 @@ namespace EasyGamePlay.Editor
 {
     class EditorResourceLoaderCreator : ResourceLoaderCreator
     {
-        public ResourceLoader CreateLoader(string bundleName, string folder, string postFixed)
+        public ResourceLoader CreateLoader(string bundleName, string folder)
         {
             return new EditorResourceLoader(bundleName, null);
         }

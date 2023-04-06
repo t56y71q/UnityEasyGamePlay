@@ -6,9 +6,9 @@ namespace EasyGamePlay
 {
     class ABLoaderCreator : ResourceLoaderCreator
     {
-        public ResourceLoader CreateLoader(string bundleName, string folder, string postFixed)
+        public ResourceLoader CreateLoader(string bundleName, string folder)
         {
-            return new ABResourceLoader(bundleName,folder + bundleName+ postFixed);
+            return new ABResourceLoader(bundleName,folder + bundleName);
         }
     }
 }

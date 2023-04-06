@@ -9,7 +9,7 @@ namespace EasyGamePlay
     {
         
         public abstract Type type { get; }
-
+        public Actor actor;
         
     }
 }

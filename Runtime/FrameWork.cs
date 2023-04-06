@@ -4,10 +4,13 @@ using UnityEngine;
 
 namespace EasyGamePlay
 {
-    public class FrameWork: ITick
+    public class FrameWork
     {
         public AGame game { get=> mGame; }
         public GameObject gameObject { get => @object; }
+
+        public static Action noneAction = delegate () { };
+        public static Action<Vector2> noneVector2Action = delegate (Vector2 vector2) { };
 
         public World world { get => mWorld; }
         public SystemManager systemManager { get => mSystemManager; }
@@ -18,6 +21,7 @@ namespace EasyGamePlay
         public ETimer timer { get => mTimer; }
         public ECoroutine coroutine { get => mCoroutine; }
         public EResource resource { get => mResource; }
+        public EInput input { get => mInput; }
         public PanelSystem panelSystem { get => mPanelSystem; }
 
         private AGame mGame;
@@ -33,12 +37,11 @@ namespace EasyGamePlay
         private World mWorld;
         private SystemManager mSystemManager;
         private PanelSystem mPanelSystem;
+        private EInput mInput;
 
         private GameLoop gameLoop;
         private Exception exception;
         private Logger logger;
-
-        private Queue<Entity> entities;
 
         public event PreLoad  preload;
         public event Load load;
@@ -84,10 +87,10 @@ namespace EasyGamePlay
             mResource = new EResource(mSerialize);
             mStateMachine = new EStateMachine();
             mPanelSystem = new PanelSystem();
+            mInput = new EInput();
             mWorld = new World();
 
-            entities = new Queue<Entity>(32);
-            Entity.stateUpdate = entities.Enqueue;
+            Entity.stateUpdate = delegate(Entity entity) { NextFrame(entity.Update); };
 
             preload?.Invoke();
             OnGameLoad(gameConfig);
@@ -128,16 +131,17 @@ namespace EasyGamePlay
 
             resource.LoadSetting(gameConfig.resourceSetting);
 
-            gameLoop.AddTick(this);
+            if(gameConfig.InputAsset!=null)
+                mInput.LoadAsset(gameConfig.InputAsset);
 
-            mWorld.Init(mResource, mSerialize, mCoroutine, gameObject);
+            mWorld.Init(mResource, mSerialize, mCoroutine);
         }
 
         private void OnGameUnload()
         {
             mWorld.Destroy();
 
-            gameLoop.RemoveTick(this);
+            mInput.UnloadAsset();
 
             coroutine.Destroy();
 
@@ -154,14 +158,6 @@ namespace EasyGamePlay
             GameObject.Destroy(@object);
 
             quit();
-        }
-
-        public void Tick()
-        {
-            while (entities.Count > 0)
-            {
-                entities.Dequeue().Update();
-            }
         }
 
         #endregion
